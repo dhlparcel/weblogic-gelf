@@ -9,7 +9,7 @@
     <groupId>nl.dhlparcel</groupId>
     <artifactId>weblogic-gelf</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>WebLogic Gelf logging handler</name>
     <description>A WebLogic startup class that registers a Gelf handler with the server logger in WebLogic. </description>
