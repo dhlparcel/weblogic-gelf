@@ -15,7 +15,7 @@
     <description>A WebLogic startup class that registers a Gelf handler with the server logger in WebLogic. </description>
 
     <build>
-        <finalName>weblogic-gelf</finalName>
+        <finalName>${artifactId}-${version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -26,17 +26,66 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <!--
+                We need the logstash-gelf library available to both WebLogic itself (via JUL), and the applications (via L4J).
+                Placing it on the WL server's classpath breaks L4J, for unclear reasons. By including a shaded version of the lib,
+                we can work around this restriction.
+
+                Note that by changing the name of the package, the properties file that configures JUL also needs to reference the new
+                package name (dhl.biz.paluch.logging).
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>biz.paluch.logging:logstash-gelf</include>
+                                </includes>
+                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>biz.paluch.logging</pattern>
+                                    <shadedPattern>dhl.biz.paluch.logging</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <!--
+                                    Log4j2Plugins.dat from original dist refers to the un-shaded package name.
+                                    We only use this lib for JUL, best to filter it out in case it interferes with L4J.
+                                    -->
+                                    <artifact>biz.paluch.logging:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
     <dependencies>
         <dependency>
+            <!-- this dependency will be shaded, see explanation above -->
             <groupId>biz.paluch.logging</groupId>
             <artifactId>logstash-gelf</artifactId>
             <version>1.15.0</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- this dependency will (and should) not be shaded due to its scope -->
             <groupId>com.oracle.weblogic</groupId>
             <artifactId>com.oracle.weblogic.logging</artifactId>
             <version>14.1.1-0-0</version>
