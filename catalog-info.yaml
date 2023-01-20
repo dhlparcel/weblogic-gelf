@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: weblogic-gelf
+  description: weblogic-gelf
+  annotations: 
+    github.com/project-slug: dhlparcel/weblogic-gelf
+    backstage.io/techdocs-ref: dir:.
+    
+spec:
+  type: component
+  lifecycle: production
+  owner: hubportal-users
